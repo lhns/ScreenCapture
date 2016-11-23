@@ -7,6 +7,8 @@ lazy val settings = Seq(
 
   resolvers := Seq("Artifactory" at "http://lolhens.no-ip.org/artifactory/libs-release/"),
 
+  classpathTypes += "maven-plugin",
+
   libraryDependencies ++= Seq(
     "org.scala-lang" % "scala-reflect" % "2.11.8",
     "org.slf4j" % "slf4j-api" % "1.7.21",
@@ -21,8 +23,11 @@ lazy val settings = Seq(
     "com.typesafe.akka" %% "akka-remote" % "2.4.12",
     "com.typesafe.akka" %% "akka-stream" % "2.4.12",
     "io.spray" %% "spray-json" % "1.3.2",
-    "com.github.fommil" %% "spray-json-shapeless" % "1.2.0",
-    "org.bytedeco" % "javacv" % "1.2"
+    "com.github.fommil" %% "spray-json-shapeless" % "1.2.0"
+  ),
+
+  javaCppPresetLibs ++= Seq(
+    "ffmpeg" -> "3.1.2"
   ),
 
   addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
