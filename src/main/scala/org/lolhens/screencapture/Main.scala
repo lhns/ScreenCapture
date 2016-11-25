@@ -15,7 +15,11 @@ import org.bytedeco.javacpp.opencv_core.IplImage
   */
 object Main {
   def main(args: Array[String]): Unit = {
-    toFrame(grabScreen(Observable.repeat(()))).foreach(println)
+    ObservableTest
+    while (true) {
+      Thread.sleep(1000)
+    }
+    //toFrame(grabScreen(Observable.repeat(()))).foreach(println)
   }
 
   def grabScreen(signals: Observable[_]): Observable[BufferedImage] = {
@@ -31,7 +35,7 @@ object Main {
 
   def test = {
     val recorder = FFmpegFrameRecorder.
-    recorder.setFormat(avcodec.AV_CODEC_ID_H264)
+    //recorder.setFormat(avcodec.AV_CODEC_ID_H264)
 
   }
 }
