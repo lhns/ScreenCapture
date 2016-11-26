@@ -15,5 +15,3 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.1.1")
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % "0.6.13")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0")
-
-addSbtPlugin("org.bytedeco" % "sbt-javacv" % "1.12")

@@ -4,11 +4,7 @@ import java.awt.image.BufferedImage
 import java.awt.{Rectangle, Robot, Toolkit}
 
 import monix.reactive.Observable
-import org.bytedeco.javacv._
 import monix.execution.Scheduler.Implicits.global
-import org.bytedeco.javacpp.helper.opencv_core.AbstractIplImage
-import org.bytedeco.javacpp.{avcodec, opencv_core}
-import org.bytedeco.javacpp.opencv_core.IplImage
 
 /**
   * Created by pierr on 23.11.2016.

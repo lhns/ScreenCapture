@@ -23,11 +23,8 @@ lazy val settings = Seq(
     "com.typesafe.akka" %% "akka-remote" % "2.4.12",
     "com.typesafe.akka" %% "akka-stream" % "2.4.12",
     "io.spray" %% "spray-json" % "1.3.2",
-    "com.github.fommil" %% "spray-json-shapeless" % "1.2.0"
-  ),
-
-  javaCppPresetLibs ++= Seq(
-    "ffmpeg" -> "3.1.2"
+    "com.github.fommil" %% "spray-json-shapeless" % "1.2.0",
+    "org.jcodec" % "jcodec" % "0.2.0_1"
   ),
 
   addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
