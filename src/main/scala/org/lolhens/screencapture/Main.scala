@@ -17,12 +17,11 @@ import scodec.bits.ByteVector
   */
 object Main {
   def main(args: Array[String]): Unit = {
-    toFrame(grabScreen(Observable.repeat(())))
+    encode(grabScreen(Observable.repeat(()))).foreach(println)
 
     while (true) {
       Thread.sleep(1000)
     }
-    //toFrame(grabScreen(Observable.repeat(()))).foreach(println)
   }
 
   def grabScreen(signals: Observable[_]): Observable[BufferedImage] = {
@@ -31,43 +30,18 @@ object Main {
     signals.map(_ => robot.createScreenCapture(screenSize))
   }
 
-  def toFrame(bufferedImages: Observable[BufferedImage]): Unit = {
-    val ch = new SeekableByteChannel {
-      private var closed = false
-      private var pos: Int = 0
-      private val buffer = new BoundedEventBuffer[ByteVector]()
+  def encode(bufferedImages: Observable[BufferedImage]): Observable[ByteVector] = {
+    val buffer = new BoundedEventBuffer[ByteVector]()
 
-      override def setPosition(l: Long): SeekableByteChannel =
-        throw new UnsupportedOperationException()
+    val sequenceEncoder = new AWTSequenceEncoder8Bit(new SeekableByteChannelBufferWrapper(buffer), Rational.R(30, 1))
 
-      override def position(): Int = pos
-
-      override def size(): Int = pos
-
-      override def truncate(l: Long): SeekableByteChannel =
-        throw new UnsupportedOperationException()
-
-      override def read(dst: ByteBuffer): Int =
-        throw new UnsupportedOperationException()
-
-      override def write(src: ByteBuffer): Int = {
-        val byteVector = ByteVector(src)
-        val size = byteVector.size.toInt
-        pos += size
-        buffer += byteVector
-        size
-      }
-
-      override def isOpen: Boolean = !closed
-
-      override def close(): Unit = closed = true
-    }
-
-    val sequenceEncoder = new AWTSequenceEncoder8Bit(ch, Rational.R(1, 1))
-
-    bufferedImages.foreach(img => sequenceEncoder.encodeImage(img)).onSuccess {
+    bufferedImages.foreach { img =>
+      sequenceEncoder.encodeImage(img)
+    }.onSuccess {
       case _ => sequenceEncoder.finish()
     }
+
+    Observable.fromIterator(buffer.iterator())
   }
 
   def test = {

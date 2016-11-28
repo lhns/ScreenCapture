@@ -6,9 +6,9 @@ import org.jcodec.common.io.SeekableByteChannel
 import scodec.bits.ByteVector
 
 /**
-  * Created by pierr on 27.11.2016.
+  * Created by pierr on 28.11.2016.
   */
-class SeekableByteChannelBufferWrapper(val buffer: BoundedEventBuffer[ByteVector]) extends SeekableByteChannel {
+class SeekableByteChannelObservable(val buffer: BoundedEventBuffer[ByteVector]) extends SeekableByteChannel {
   private var _closed = false
   private var _size: Long = 0
   private var _position: Long = 0
