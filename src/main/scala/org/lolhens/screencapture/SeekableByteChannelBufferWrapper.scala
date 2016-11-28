@@ -10,17 +10,26 @@ import scodec.bits.ByteVector
   */
 class SeekableByteChannelBufferWrapper(val buffer: BoundedEventBuffer[ByteVector]) extends SeekableByteChannel {
   private var _closed = false
-  private var _position: Int = 0
+  private var _size: Long = 0
+  private var _position: Long = 0
 
-  override def setPosition(l: Long): SeekableByteChannel =
-    throw new UnsupportedOperationException()
+  override def setPosition(position: Long): SeekableByteChannel =
+    if (position >= _size) {
+      _position = position
+      this
+    } else
+      throw new UnsupportedOperationException()
 
-  override def position(): Int = _position
+  override def position(): Long = _position
 
-  override def size(): Int = _position
+  override def size(): Long = _position
 
-  override def truncate(l: Long): SeekableByteChannel =
-    throw new UnsupportedOperationException()
+  override def truncate(position: Long): SeekableByteChannel =
+    if (position >= _size) {
+      _position = position
+      this
+    } else
+      throw new UnsupportedOperationException()
 
   override def read(dst: ByteBuffer): Int =
     throw new UnsupportedOperationException()
