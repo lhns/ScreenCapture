@@ -2,22 +2,23 @@ package org.lolhens.screencapture
 
 import java.awt.image.BufferedImage
 import java.awt.{Rectangle, Robot, Toolkit}
-import java.nio.ByteBuffer
 
 import monix.execution.Scheduler.Implicits.global
 import monix.reactive.Observable
-import org.jcodec.api.awt.AWTSequenceEncoder8Bit
-import org.jcodec.common.io.SeekableByteChannel
+import org.jcodec.api.awt.{AWTFrameGrab8Bit, AWTSequenceEncoder8Bit}
 import org.jcodec.common.model.Rational
 import org.lolhens.screencapture.RichObservable._
 import scodec.bits.ByteVector
+
+import scala.concurrent.Future
 
 /**
   * Created by pierr on 23.11.2016.
   */
 object Main {
   def main(args: Array[String]): Unit = {
-    encode(grabScreen(Observable.repeat(()))).foreach(println)
+    val stream = encode(grabScreen(Observable.repeat(())))
+    decode(stream.map{e => println(e); e}).foreach(println)
 
     while (true) {
       Thread.sleep(1000)
@@ -42,6 +43,11 @@ object Main {
     }
 
     Observable.fromIterator(buffer.iterator())
+  }
+
+  def decode(data: Observable[ByteVector]): Observable[BufferedImage] = {
+    val frameGrabber = AWTFrameGrab8Bit.createAWTFrameGrab8Bit(new SeekableByteChannelObservable(data))
+    Observable.repeatEval(frameGrabber.getFrame)
   }
 
   def test = {
