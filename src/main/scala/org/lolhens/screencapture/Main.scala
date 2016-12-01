@@ -10,18 +10,21 @@ import org.jcodec.common.model.Rational
 import org.lolhens.screencapture.RichObservable._
 import scodec.bits.ByteVector
 
-import scala.concurrent.Future
-
 /**
   * Created by pierr on 23.11.2016.
   */
 object Main {
   def main(args: Array[String]): Unit = {
-    val stream = encode(grabScreen(Observable.repeat(())))
+    test1
+    //Test.main
+  }
+
+  def test1 = {
+    val stream = encode(grabScreen(Observable.fromIterable(0 until 2)))
     println("1")
-    val g = decode(stream.map{e => println(e); e})
-      println("0")
-      g.foreach(e => {
+    val g = decode(stream.map { e => println(e); e })
+    println("0")
+    g.foreach(e => {
       println("3")
       println(e)
     })
@@ -35,7 +38,10 @@ object Main {
   def grabScreen(signals: Observable[_]): Observable[BufferedImage] = {
     val robot = new Robot()
     val screenSize = new Rectangle(Toolkit.getDefaultToolkit.getScreenSize)
-    signals.map(_ => robot.createScreenCapture(screenSize))
+    signals.map { _ =>
+      println("###")
+      robot.createScreenCapture(screenSize)
+    }
   }
 
   def encode(bufferedImages: Observable[BufferedImage]): Observable[ByteVector] = {
