@@ -28,8 +28,9 @@ class BoundedEventBuffer[T](val capacity: Int = Int.MaxValue) extends Iterable[T
     if (isClosed) throw new IllegalStateException(
       "Appending to a closed buffer is not supported"
     )
+    while (buffer.size > capacity) Thread.sleep(1000) // TODO
     buffer += item
-    0 until (buffer.size - capacity) foreach buffer.remove
+    //0 until (buffer.size - capacity) foreach buffer.remove
     this
   }
 

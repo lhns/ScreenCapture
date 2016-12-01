@@ -18,7 +18,14 @@ import scala.concurrent.Future
 object Main {
   def main(args: Array[String]): Unit = {
     val stream = encode(grabScreen(Observable.repeat(())))
-    decode(stream.map{e => println(e); e}).foreach(println)
+    println("1")
+    val g = decode(stream.map{e => println(e); e})
+      println("0")
+      g.foreach(e => {
+      println("3")
+      println(e)
+    })
+    println("2")
 
     while (true) {
       Thread.sleep(1000)
@@ -46,8 +53,16 @@ object Main {
   }
 
   def decode(data: Observable[ByteVector]): Observable[BufferedImage] = {
-    val frameGrabber = AWTFrameGrab8Bit.createAWTFrameGrab8Bit(new SeekableByteChannelObservable(data))
-    Observable.repeatEval(frameGrabber.getFrame)
+    val c = new SeekableByteChannelObservable(data)
+    println("99")
+    val frameGrabber = AWTFrameGrab8Bit.createAWTFrameGrab8Bit(c)
+    println("13")
+    Observable.repeatEval({
+      println("a")
+      val r = frameGrabber.getFrame
+      println("b")
+      r
+    })
   }
 
   def test = {
