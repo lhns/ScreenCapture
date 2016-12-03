@@ -18,7 +18,8 @@ class SeekableByteChannelBufferWrapper(val buffer: BoundedEventBuffer[ByteVector
       _position = position
       this
     } else
-      throw new UnsupportedOperationException()
+      this
+      //throw new UnsupportedOperationException(s"setting position from ${_position} to $position")
 
   override def position(): Long = _position
 
