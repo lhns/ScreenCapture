@@ -1,12 +1,5 @@
 package org.lolhens.screencapture
 
-import java.awt.image.BufferedImage
-
-import monix.reactive.Observable
-import org.jcodec.api.awt.{AWTFrameGrab8Bit, AWTSequenceEncoder8Bit}
-import org.jcodec.common.model.Rational
-import scodec.bits.ByteVector
-
 /**
   * Created by pierr on 11.12.2016.
   */
