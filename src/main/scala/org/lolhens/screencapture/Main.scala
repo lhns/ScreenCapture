@@ -21,10 +21,10 @@ object Main {
 
     Try(args(1)).toOption match {
       case Some(receiverHost) =>
-        CaptureSender(selectScreen(-1), new InetSocketAddress(receiverHost, 51234))
+        CaptureSender(selectScreen(screen), new InetSocketAddress(receiverHost, 51234))
 
       case None =>
-        CaptureReceiver(selectScreen(0), new InetSocketAddress("0.0.0.0", 51234))
+        CaptureReceiver(selectScreen(screen), new InetSocketAddress("0.0.0.0", 51234))
     }
   }
 
