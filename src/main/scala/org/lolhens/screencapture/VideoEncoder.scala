@@ -11,7 +11,7 @@ import scodec.bits.ByteVector
   * Created by pierr on 11.12.2016.
   */
 object VideoEncoder {
-  def encode(bufferedImages: Observable[BufferedImage]): Observable[ByteVector] = {
+  /*def encode(bufferedImages: Observable[BufferedImage]): Observable[ByteVector] = {
     val buffer = new BoundedEventBuffer[ByteVector]()
 
     val sequenceEncoder = new AWTSequenceEncoder8Bit(new SeekableByteChannelBufferWrapper(null), Rational.R(30, 1))
@@ -41,5 +41,5 @@ object VideoEncoder {
       println("b")
       r
     })
-  }
+  }*/
 }
