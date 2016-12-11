@@ -1,7 +1,7 @@
 name := "ScreenCapture"
 
 lazy val settings = Seq(
-  version := "0.0.0",
+  version := "0.1.0",
 
   scalaOrganization := "org.typelevel",
   scalaVersion := "2.11.8",
