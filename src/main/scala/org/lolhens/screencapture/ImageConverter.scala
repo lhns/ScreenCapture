@@ -7,6 +7,8 @@ import javax.imageio.ImageIO
 import scodec.bits.ByteVector
 import swave.core.Spout
 
+import scala.util.Try
+
 /**
   * Created by pierr on 11.12.2016.
   */
@@ -25,10 +27,10 @@ object ImageConverter {
     }
   }
 
-  def fromBytes(byteVectors: Spout[ByteVector]): Spout[BufferedImage] =
+  def fromBytes(byteVectors: Spout[ByteVector]): Spout[Try[BufferedImage]] =
     byteVectors.map { byteVector =>
-      println(byteVector.size)
+      //println(byteVector.size)
       val inputStream = new ByteArrayInputStream(byteVector.toArray)
-      ImageIO.read(inputStream)
+      Try(ImageIO.read(inputStream))
     }
 }

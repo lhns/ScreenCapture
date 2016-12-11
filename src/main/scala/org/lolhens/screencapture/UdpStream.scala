@@ -3,7 +3,7 @@ package org.lolhens.screencapture
 import java.net.InetSocketAddress
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
-import akka.io.{IO, Udp, UdpConnected}
+import akka.io.{IO, Udp}
 import akka.util.ByteString
 import scodec.bits.ByteVector
 import swave.core.PushSpout2._
@@ -15,39 +15,38 @@ import scala.concurrent.Future
   * Created by pierr on 11.12.2016.
   */
 object UdpStream {
-  def receiver(remote: InetSocketAddress)(implicit actorSystem: ActorSystem): Spout[ByteVector] = {
+  def receiver(bind: InetSocketAddress)(implicit actorSystem: ActorSystem): Spout[ByteVector] = {
     val pushSpout = PushSpout2[ByteVector](2, 4)
-    UdpReceiver.actor(remote, pushSpout)
+    UdpReceiver.actor(bind, pushSpout)
     pushSpout.async("blocking-io")
   }
 
-  private class UdpReceiver(remote: InetSocketAddress, pushSpout: PushSpout2[ByteVector]) extends Actor {
+  private class UdpReceiver(bind: InetSocketAddress, pushSpout: PushSpout2[ByteVector]) extends Actor {
 
     import context.system
 
-    IO(UdpConnected) ! UdpConnected.Connect(self, remote)
+    IO(Udp) ! Udp.Bind(self, bind)
 
     override def receive: Receive = {
-      case UdpConnected.Connected =>
+      case Udp.Bound(localAddress) =>
         context.become(ready(sender()))
-        println("testR")
     }
 
-    def ready(connection: ActorRef): Receive = {
-      case UdpConnected.Received(byteString) =>
+    def ready(socket: ActorRef): Receive = {
+      case Udp.Received(byteString, remoteAddress) =>
         val data = ByteVector(byteString.toByteBuffer)
-        println("rec")
         pushSpout.offer(data)
 
-      case UdpConnected.Disconnect => connection ! UdpConnected.Disconnect
-      case UdpConnected.Disconnected => context.stop(self)
+      case Udp.Unbind => socket ! Udp.Unbind
+      case Udp.Unbound => context.stop(self)
+      case e => println(e)
     }
   }
 
   private object UdpReceiver {
-    def props(remote: InetSocketAddress, pushSpout: PushSpout2[ByteVector]) = Props(new UdpReceiver(remote, pushSpout))
+    def props(bind: InetSocketAddress, pushSpout: PushSpout2[ByteVector]) = Props(new UdpReceiver(bind, pushSpout))
 
-    def actor(remote: InetSocketAddress, pushSpout: PushSpout2[ByteVector])(implicit actorSystem: ActorSystem): ActorRef = actorSystem.actorOf(props(remote, pushSpout))
+    def actor(bind: InetSocketAddress, pushSpout: PushSpout2[ByteVector])(implicit actorSystem: ActorSystem): ActorRef = actorSystem.actorOf(props(bind, pushSpout))
   }
 
   def sender(bind: InetSocketAddress, remote: InetSocketAddress)(implicit actorSystem: ActorSystem): Drain[ByteVector, Future[Unit]] = {
@@ -67,7 +66,6 @@ object UdpStream {
     override def receive: Receive = {
       case Udp.Bound(localAddress) =>
         context.become(ready(sender()))
-        println("testS")
     }
 
     def ready(socket: ActorRef): Receive = {
@@ -76,10 +74,8 @@ object UdpStream {
       case Udp.Unbind => socket ! Udp.Unbind
       case Udp.Unbound => context.stop(self)
 
-      case UdpSender.SendData(byteVector) =>
-        val data = ByteString(byteVector.toByteBuffer)
-        println(s"send ${data.size}")
-        socket ! Udp.Send(data.take(100), remote)
+      case UdpSender.SendData(data) =>
+        socket ! Udp.Send(ByteString(data.toByteBuffer), remote)
     }
   }
 

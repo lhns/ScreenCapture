@@ -1,7 +1,7 @@
 package org.lolhens.screencapture
 
 import java.awt.image.BufferedImage
-import java.awt.{GraphicsDevice, Rectangle, Robot}
+import java.awt.{GraphicsDevice, Robot}
 
 import swave.core.Spout
 
@@ -11,7 +11,7 @@ import swave.core.Spout
 object ImageGrabber {
   def apply(graphicsDevice: GraphicsDevice): Spout[BufferedImage] = {
     val robot = new Robot(graphicsDevice)
-    val screenSize = new Rectangle(graphicsDevice.getDisplayMode.getWidth, graphicsDevice.getDisplayMode.getHeight)
+    val screenSize = graphicsDevice.getDefaultConfiguration.getBounds
 
     Spout.continually(robot.createScreenCapture(screenSize))
   }

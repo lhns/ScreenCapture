@@ -7,12 +7,11 @@
 package swave.core
 
 import org.jctools.queues.MpscChunkedArrayQueue
-
-import scala.collection.immutable
 import swave.core.impl.stages.spout.PushSpoutStage
 import swave.core.util._
 
 import scala.annotation.tailrec
+import scala.collection.immutable
 
 /**
   * A [[PushSpout]] provides a [[Spout]] that can be "manually" pushed into from the outside,
@@ -22,19 +21,19 @@ import scala.annotation.tailrec
   * (i.e. back-pressure). If the queue is full all further pushes are rejected, i.e. no elements are being dropped.
   *
   * @param initialBufferSize the initial buffer size, must be >= 2.
-  * @param maxBufferSize the max size the buffer is allowed to grow to if required, must be >= 4, will be rounded up to
-  *                      the closest power of 2 and round up to a larger power of 2 than `initialBufferSize`.
-  * @param notifyOnDequeued callback that will be called each time a `request` signal from downstream has been handled,
+  * @param maxBufferSize     the max size the buffer is allowed to grow to if required, must be >= 4, will be rounded up to
+  *                          the closest power of 2 and round up to a larger power of 2 than `initialBufferSize`.
+  * @param notifyOnDequeued  callback that will be called each time a `request` signal from downstream has been handled,
   *                         i.e. whenever one or more elements have been dequeued and pushed to downstream.
-  *                         The argument to the handler is the number of elements dequeued and is always > 0.
-  *                         NOTE: Might be called from another thread if the stream is asynchronous!
-  *                         Handler should be light-weight and never block!
-  * @param notifyOnCancel callback that will be called when the downstream has actively cancelled the stream.
-  *                       This might be even after manual completion via the `complete` method!
-  *                       NOTE: Might be called from another thread if the stream is asynchronous!
-  *                       Handler should be light-weight and never block!
+  *                          The argument to the handler is the number of elements dequeued and is always > 0.
+  *                          NOTE: Might be called from another thread if the stream is asynchronous!
+  *                          Handler should be light-weight and never block!
+  * @param notifyOnCancel    callback that will be called when the downstream has actively cancelled the stream.
+  *                          This might be even after manual completion via the `complete` method!
+  *                          NOTE: Might be called from another thread if the stream is asynchronous!
+  *                          Handler should be light-weight and never block!
   */
-final class PushSpout2[+A] private (val initialBufferSize: Int,
+final class PushSpout2[+A] private(val initialBufferSize: Int,
                                    val maxBufferSize: Int,
                                    notifyOnDequeued: (PushSpout2[A], Int) ⇒ Unit,
                                    notifyOnCancel: PushSpout2[A] ⇒ Unit) {
@@ -86,6 +85,7 @@ final class PushSpout2[+A] private (val initialBufferSize: Int,
     */
   def offerMany[B >: A](elements: immutable.Iterable[B]): Int = {
     val iter = elements.iterator
+
     @tailrec def rec(count: Int): Int =
       if (iter.hasNext && queue.offer(iter.next().asInstanceOf[AnyRef])) {
         rec(count + 1)
@@ -93,6 +93,7 @@ final class PushSpout2[+A] private (val initialBufferSize: Int,
         if (count > 0) stage.enqueueXEvent(PushSpoutStage.Signal.NewAvailable)
         count
       }
+
     rec(0)
   }
 
