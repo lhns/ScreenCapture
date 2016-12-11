@@ -3,6 +3,7 @@ name := "ScreenCapture"
 lazy val settings = Seq(
   version := "0.0.0",
 
+  scalaOrganization := "org.typelevel",
   scalaVersion := "2.11.8",
 
   resolvers := Seq("Artifactory" at "http://lolhens.no-ip.org/artifactory/libs-release/"),
@@ -26,7 +27,10 @@ lazy val settings = Seq(
     "com.github.fommil" %% "spray-json-shapeless" % "1.3.0",
     "org.scodec" % "scodec-bits_2.11" % "1.1.2",
     "org.jcodec" % "jcodec-javase" % "0.2.0",
-    "org.jcodec" % "jcodec-samples" % "0.2.0"
+    "org.jcodec" % "jcodec-samples" % "0.2.0",
+    "io.swave" % "swave-core_2.11" % "0.5.0",
+    "io.swave" % "swave-akka-compat_2.11" % "0.5.0",
+    "io.swave" % "swave-scodec-compat_2.11" % "0.5.0"
   ),
 
   addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
