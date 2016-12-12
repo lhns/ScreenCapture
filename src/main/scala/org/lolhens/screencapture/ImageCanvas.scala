@@ -25,7 +25,7 @@ object ImageCanvas {
     }(component)
   }
 
-  def fullscreenWindow(graphicsDevice: GraphicsDevice): Frame = {
+  def fullscreenWindow(graphicsDevice: GraphicsDevice): JFrame = {
     val frame = new JFrame(graphicsDevice.getDefaultConfiguration)
     frame.setExtendedState(Frame.MAXIMIZED_BOTH)
     frame.setUndecorated(true)
@@ -33,7 +33,7 @@ object ImageCanvas {
     frame
   }
 
-  def fullscreen(graphicsDevice: GraphicsDevice): Drain[BufferedImage, Frame] = {
+  def fullscreen(graphicsDevice: GraphicsDevice): Drain[BufferedImage, JFrame] = {
     apply().mapResult { component =>
       val frame = fullscreenWindow(graphicsDevice)
       frame.add(component)

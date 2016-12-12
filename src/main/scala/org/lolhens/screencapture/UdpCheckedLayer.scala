@@ -9,7 +9,7 @@ import swave.core.Spout
   */
 object UdpCheckedLayer {
   //protocol: chunkNum: Int ~ maxChunkNum: Int ~ chunkSize: Int ~ data: Bytes
-  def toChunks(byteVectors: Spout[ByteVector], chunkSize: Int = 10000): Spout[ByteVector] =
+  def toChunks(byteVectors: Spout[ByteVector], chunkSize: Int = 20000): Spout[ByteVector] =
     byteVectors.map { byteVector =>
       val dataPackets = byteVector.grouped(chunkSize).toList
       if (dataPackets.nonEmpty) {
@@ -39,7 +39,7 @@ object UdpCheckedLayer {
           ((maxChunkNum, collectedPackets), Spout.empty)
         } else {
           val byteVector = ByteVector.concat(sortedPackets.map(_.get))
-          ((0, Map.empty), Spout.one(byteVector))
+          ((0, collectedPackets.filter(_._1 <= maxChunkNum)), Spout.one(byteVector))
         }
       } else {
         (last, Spout.empty)
