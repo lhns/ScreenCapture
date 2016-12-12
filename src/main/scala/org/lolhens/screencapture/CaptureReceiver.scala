@@ -13,7 +13,8 @@ import swave.core.StreamEnv
 object CaptureReceiver {
   def apply(graphicsDevice: GraphicsDevice, remote: InetSocketAddress)(implicit streamEnv: StreamEnv, actorSystem: ActorSystem) = {
     val recBytes = UdpStream.receiver(remote).async(bufferSize = 20)
-    val images = ImageConverter.fromBytes(UdpCheckedLayer.fromChunks(recBytes).async(bufferSize = 1))
+    val byteStream = UdpCheckedLayer.fromChunks(recBytes).async(bufferSize = 1)
+    val images = ImageConverter.fromBytes(byteStream)
     val window = ImageCanvas.fullscreen(graphicsDevice)
     val frameTry = images.map(_.toOption).flattenConcat().onError(_.printStackTrace()).to(window).run()
     frameTry.map(_.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE))
