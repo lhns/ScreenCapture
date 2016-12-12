@@ -40,6 +40,9 @@ lazy val settings = Seq(
 
   dependencyUpdatesExclusions := moduleFilter(organization = "org.scala-lang"),
 
+  scalacOptions += "-target:jvm-1.6",
+    javacOptions ++= Seq("-source", "1.6", "-target", "1.6"),
+
   scalacOptions ++= Seq("-Xmax-classfile-name", "254")
 )
 
