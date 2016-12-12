@@ -14,7 +14,7 @@ import scala.annotation.tailrec
 import scala.collection.immutable
 
 /**
-  * A [[PushSpout]] provides a [[Spout]] that can be "manually" pushed into from the outside,
+  * A PushSpout provides a Spout that can be "manually" pushed into from the outside,
   * potentially by several threads concurrently.
   *
   * It manages an internal queue which allows for compensation of some fluctuation in demand from downstream
@@ -44,7 +44,7 @@ final class PushSpout2[+A] private(val initialBufferSize: Int,
   /**
     * The actual spout instance.
     *
-    * NOTE: The [[PushSpout]] companion defines an implicit conversion to this instance so in many cases
+    * NOTE: The PushSpout companion defines an implicit conversion to this instance so in many cases
     * you should be able omit the explicit selection of this member.
     */
   val spout: Spout[A] = new Spout(stage)
@@ -111,7 +111,7 @@ final class PushSpout2[+A] private(val initialBufferSize: Int,
 object PushSpout2 {
 
   /**
-    * Creates a new [[PushSpout]].
+    * Creates a new PushSpout.
     */
   def apply[T](initialBufferSize: Int,
                maxBufferSize: Int,
@@ -120,7 +120,7 @@ object PushSpout2 {
     new PushSpout2[T](initialBufferSize, maxBufferSize, notifyOnDequeued, notifyOnCancel)
 
   /**
-    * Allows a [[PushSpout] to be used (almost) everywhere where a [[Spout]] is expected.
+    * Allows a PushSpout] to be used (almost) everywhere where a Spout is expected.
     */
   implicit def pushSpout2ToSpout[T](ps: PushSpout2[T]): Spout[T] = ps.spout
 }
