@@ -33,15 +33,14 @@ lazy val settings = Seq(
     "io.swave" % "swave-scodec-compat_2.11" % "0.5.0"
   ),
 
+  dependencyOverrides += "com.typesafe" % "config" % "1.2.1",
+
   addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
   addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.3"),
 
   mainClass in Compile := Some("org.lolhens.screencapture.Main"),
 
   dependencyUpdatesExclusions := moduleFilter(organization = "org.scala-lang"),
-
-  scalacOptions += "-target:jvm-1.6",
-    javacOptions ++= Seq("-source", "1.6", "-target", "1.6"),
 
   scalacOptions ++= Seq("-Xmax-classfile-name", "254")
 )
