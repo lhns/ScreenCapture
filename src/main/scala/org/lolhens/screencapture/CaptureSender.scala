@@ -16,8 +16,8 @@ object CaptureSender {
   def apply(graphicsDevice: GraphicsDevice, remote: InetSocketAddress)(implicit streamEnv: StreamEnv, actorSystem: ActorSystem) = {
     val grabber = ImageGrabber(graphicsDevice).async(bufferSize = 1).throttle(1, 0.3 seconds)
     val byteStream = ImageConverter.toBytes(grabber).async(bufferSize = 1)
-    UdpCheckedLayer.toChunks(byteStream.map(e => List(e, e, e)).flattenConcat())
+    UdpCheckedLayer.toChunks(byteStream.map(e => List(e)).flattenConcat(), 4000)
       .onError(_.printStackTrace())
-      .to(UdpStream.sender(new InetSocketAddress("0.0.0.0", 0), remote)).run()
+      .to(TcpStream.sender(new InetSocketAddress("0.0.0.0", 0), remote)).run()
   }
 }

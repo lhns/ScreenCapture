@@ -5,6 +5,7 @@ import java.net.InetSocketAddress
 import javax.swing.JFrame
 
 import akka.actor.ActorSystem
+import swave.core.Buffer.OverflowStrategy
 import swave.core.StreamEnv
 
 /**
@@ -12,7 +13,7 @@ import swave.core.StreamEnv
   */
 object CaptureReceiver {
   def apply(graphicsDevice: GraphicsDevice, remote: InetSocketAddress)(implicit streamEnv: StreamEnv, actorSystem: ActorSystem) = {
-    val recBytes = UdpStream.receiver(remote).async(bufferSize = 20)
+    val recBytes = TcpStream.receiver(remote).async(bufferSize = 20).bufferDropping(2, OverflowStrategy.DropTail)
     val byteStream = UdpCheckedLayer.fromChunks(recBytes).async(bufferSize = 1)
     val images = ImageConverter.fromBytes(byteStream)
     val window = ImageCanvas.fullscreen(graphicsDevice)
