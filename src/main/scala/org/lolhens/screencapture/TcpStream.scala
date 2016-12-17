@@ -89,11 +89,11 @@ object TcpStream {
 
     def ready(connection: ActorRef): Receive = {
       case TcpSender.SendData(data) =>
+        println(s"sending $data")
         connection ! Write(ByteString(data.toByteBuffer))
 
-      case f @ CommandFailed(write: Write) =>
+      case f@CommandFailed(write: Write) =>
         println("write failed")
-        println(write)
         println(f)
 
       case Received(data) =>

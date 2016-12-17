@@ -40,7 +40,7 @@ object UdpCheckedLayer {
           ((maxChunkNum, collectedPackets), Spout.empty)
         } else {
           val byteVector = ByteVector.concat(sortedPackets.map(_.get))
-          ((0, collectedPackets.filter(_._1 <= maxChunkNum)), Spout.one(byteVector))
+          ((0, Map.empty), Spout.one(byteVector))
         }
       } else {
         (last, Spout.empty)
