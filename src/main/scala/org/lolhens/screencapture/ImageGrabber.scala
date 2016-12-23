@@ -13,6 +13,6 @@ object ImageGrabber {
     val robot = new Robot(graphicsDevice)
     val screenSize = graphicsDevice.getDefaultConfiguration.getBounds
 
-    Spout.continually(robot.createScreenCapture(screenSize))
+    Spout.continually(robot.createScreenCapture(screenSize)).asyncBoundary("blocking-io", bufferSize = 1)
   }
 }

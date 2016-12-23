@@ -14,7 +14,7 @@ import scala.concurrent.Future
 /**
   * Created by u016595 on 13.12.2016.
   */
-object TcpStream {
+object TcpBackpressureStream {
   def receiver(bind: InetSocketAddress)(implicit actorSystem: ActorSystem): Spout[ByteVector] = {
     val pushSpout = PushSpout[ByteVector](2, 4)
     TcpReceiver.actor(bind, pushSpout)
@@ -108,8 +108,33 @@ object TcpStream {
 
     def actor(bind: InetSocketAddress, remote: InetSocketAddress)(implicit actorSystem: ActorSystem): ActorRef = actorSystem.actorOf(props(bind, remote))
 
-    case class SendData(byteVector: ByteVector)
+    abstract class TcpPacket(val packetType: Int) {
+      def toByteVector = ByteVector.fromInt(packetType)
+    }
 
+    object TcpPacket {
+      def fromByteVector(byteVector: ByteVector): Option[TcpPacket] = (byteVector.take(4).toInt(), byteVector.drop(4)) match {
+        case (0, data) => Some(SendData.fromByteVector(data))
+        case (1, data) => Some(Ack.fromByteVector(data))
+        case _ => None
+      }
+    }
+
+    case class SendData(data: ByteVector) extends TcpPacket(0) {
+      override def toByteVector: ByteVector = super.toByteVector ++ data
+    }
+
+    object SendData {
+      def fromByteVector(byteVector: ByteVector): SendData = SendData(byteVector)
+    }
+
+    case class Ack(packetSize: Int) extends TcpPacket(1) {
+      override def toByteVector: ByteVector = super.toByteVector ++ ByteVector.fromInt(packetSize)
+    }
+
+    object Ack {
+      def fromByteVector(byteVector: ByteVector): Ack = Ack(byteVector.take(4).toInt())
+    }
   }
 
 }

@@ -27,8 +27,9 @@ object ImageCanvas {
 
   def fullscreenWindow(graphicsDevice: GraphicsDevice): JFrame = {
     val frame = new JFrame(graphicsDevice.getDefaultConfiguration)
-    frame.setExtendedState(Frame.MAXIMIZED_BOTH)
-    frame.setUndecorated(true)
+    frame.setSize(800, 600)
+    //frame.setExtendedState(Frame.MAXIMIZED_BOTH)
+    //frame.setUndecorated(true)
     frame.setVisible(true)
     frame
   }

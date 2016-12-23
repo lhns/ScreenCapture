@@ -6,8 +6,8 @@ import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.io.{IO, Udp}
 import akka.util.ByteString
 import scodec.bits.ByteVector
-import swave.core.PushSpout2._
-import swave.core.{Drain, PushSpout2, Spout}
+import swave.core.PushSpout._
+import swave.core.{Drain, PushSpout, Spout}
 
 import scala.concurrent.Future
 
@@ -16,12 +16,12 @@ import scala.concurrent.Future
   */
 object UdpStream {
   def receiver(bind: InetSocketAddress)(implicit actorSystem: ActorSystem): Spout[ByteVector] = {
-    val pushSpout = PushSpout2[ByteVector](2, 4)
+    val pushSpout = PushSpout[ByteVector](2, 4)
     UdpReceiver.actor(bind, pushSpout)
-    pushSpout.async("blocking-io")
+    pushSpout.asyncBoundary("blocking-io", bufferSize = 2)
   }
 
-  private class UdpReceiver(bind: InetSocketAddress, pushSpout: PushSpout2[ByteVector]) extends Actor {
+  private class UdpReceiver(bind: InetSocketAddress, pushSpout: PushSpout[ByteVector]) extends Actor {
 
     import context.system
 
@@ -44,9 +44,9 @@ object UdpStream {
   }
 
   private object UdpReceiver {
-    def props(bind: InetSocketAddress, pushSpout: PushSpout2[ByteVector]) = Props(new UdpReceiver(bind, pushSpout))
+    def props(bind: InetSocketAddress, pushSpout: PushSpout[ByteVector]) = Props(new UdpReceiver(bind, pushSpout))
 
-    def actor(bind: InetSocketAddress, pushSpout: PushSpout2[ByteVector])(implicit actorSystem: ActorSystem): ActorRef = actorSystem.actorOf(props(bind, pushSpout))
+    def actor(bind: InetSocketAddress, pushSpout: PushSpout[ByteVector])(implicit actorSystem: ActorSystem): ActorRef = actorSystem.actorOf(props(bind, pushSpout))
   }
 
   def sender(bind: InetSocketAddress, remote: InetSocketAddress)(implicit actorSystem: ActorSystem): Drain[ByteVector, Future[Unit]] = {
