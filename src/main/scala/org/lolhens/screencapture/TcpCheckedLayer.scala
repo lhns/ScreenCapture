@@ -1,18 +1,19 @@
 package org.lolhens.screencapture
 
+import cats.implicits._
+import org.lolhens.screencapture.RichPipe._
 import org.lolhens.screencapture.RichSpout._
 import scodec.bits.ByteVector
-import swave.core.Spout
+import swave.core.{Pipe, Spout}
 
 import scala.Option.option2Iterable
-import cats.implicits._
 
 /**
   * Created by pierr on 18.12.2016.
   */
 object TcpCheckedLayer {
-  def toChunks(byteVectors: Spout[ByteVector], chunkSize: Int = 512): Spout[ByteVector] = {
-    byteVectors.map { bytes =>
+  def toChunks(byteVectors: Spout[ByteVector], chunkSize: Int = 512): Pipe[ByteVector, ByteVector] = {
+    Pipe[ByteVector].map[ByteVector] { bytes: ByteVector =>
       val size = ByteVector.fromInt(bytes.size.toInt)
       //val size2 = ByteVector.fromInt(bytes.size.toInt + 2)
       println(bytes.size)
@@ -27,7 +28,7 @@ object TcpCheckedLayer {
   }
 
   def fromChunks(byteVectors: Spout[ByteVector], chunkSize: Int = 512): Spout[ByteVector] = {
-    byteVectors.scanFlatMap[State, ByteVector](State.empty) { (last, e) =>
+    byteVectors.scanFlatMap[State, Spout, ByteVector](State.empty) { (last, e) =>
       val newInputBuffer = last.inputBuffer ++ e
       println(newInputBuffer)
 
@@ -52,10 +53,10 @@ object TcpCheckedLayer {
           (State(newNewInputBuffer, Some(newNewDataSize), newDataBlocks), Spout.empty)
       }
     }
-      .map { e => println(s"received $e"); e }
+      .map { e: ByteVector => println(s"received $e"); e }
   }
 
-  def toChunks2(byteVectors: Spout[ByteVector]): Spout[ByteVector] = byteVectors.map { bytes =>
+  val toChunks2: Pipe[ByteVector, ByteVector] = Pipe[ByteVector].map { bytes =>
     val size = ByteVector.fromInt(bytes.size.toInt)
     val sizeCheck = ByteVector.fromInt(Integer.MAX_VALUE - bytes.size.toInt)
     size ++ sizeCheck ++ bytes
@@ -63,10 +64,10 @@ object TcpCheckedLayer {
 
   private case object Err
 
-  def fromChunks2(byteVectors: Spout[ByteVector]): Spout[ByteVector] = {
-    byteVectors.scanFlatMap[ByteVector, ByteVector](ByteVector.empty) { (last, e) =>
+  val fromChunks2: Pipe[ByteVector, ByteVector] = {
+    Pipe[ByteVector].scanFlatMap[ByteVector, Spout, ByteVector](ByteVector.empty) { (last, e) =>
       val buffer: ByteVector = last ++ e
-      val sizeOption: Option[Either[Err.type, Int]] = Some(buffer).filter(_.size >= 8).map{ buffer =>
+      val sizeOption: Option[Either[Err.type, Int]] = Some(buffer).filter(_.size >= 8).map { buffer =>
         val size = buffer.take(4).toInt()
         if (size == Integer.MAX_VALUE - buffer.drop(4).take(4).toInt())
           Either.right(size)

@@ -1,7 +1,7 @@
 package org.lolhens.screencapture
 
 import java.awt.image.BufferedImage
-import java.awt.{Component, Frame, Graphics, GraphicsDevice}
+import java.awt.{Component, Graphics, GraphicsDevice}
 import javax.swing.JFrame
 
 import swave.core.{Drain, DrainUtil}

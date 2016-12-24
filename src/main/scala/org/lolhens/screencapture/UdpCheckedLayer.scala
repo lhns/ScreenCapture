@@ -27,7 +27,7 @@ object UdpCheckedLayer {
       .flattenConcat()
 
   def fromChunks(byteVectors: Spout[ByteVector]): Spout[ByteVector] =
-    byteVectors.scanFlatMap[(Int, Map[Int, ByteVector]), ByteVector]((0, Map.empty)) { (last, e) =>
+    byteVectors.scanFlatMap[(Int, Map[Int, ByteVector]), Spout, ByteVector]((0, Map.empty)) { (last, e) =>
       val chunkNum = e.take(4).toInt()
       val maxChunkNum = e.drop(4).take(4).toInt()
       val packetSize = e.drop(8).take(4).toInt()

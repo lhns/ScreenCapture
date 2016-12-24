@@ -135,6 +135,7 @@ object TcpBackpressureStream {
     object Ack {
       def fromByteVector(byteVector: ByteVector): Ack = Ack(byteVector.take(4).toInt())
     }
+
   }
 
 }

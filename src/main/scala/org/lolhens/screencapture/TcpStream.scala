@@ -5,11 +5,13 @@ import java.net.InetSocketAddress
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.io.Tcp._
 import akka.io.{IO, Tcp}
-import akka.util.ByteString
+import akka.pattern.ask
+import akka.util.{ByteString, Timeout}
 import scodec.bits.ByteVector
-import swave.core.{Drain, PushSpout, Spout}
+import swave.core.{Drain, Pipe, PushSpout, Spout}
 
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
 /**
   * Created by u016595 on 13.12.2016.
@@ -18,7 +20,7 @@ object TcpStream {
   def receiver(bind: InetSocketAddress)(implicit actorSystem: ActorSystem): Spout[ByteVector] = {
     val pushSpout = PushSpout[ByteVector](2, 4)
     TcpReceiver.actor(bind, pushSpout)
-    pushSpout.asyncBoundary("blocking-io", bufferSize = 2)
+    pushSpout.asyncBoundary("blocking-io", bufferSize = 1)
   }
 
   private class TcpReceiver(bind: InetSocketAddress, pushSpout: PushSpout[ByteVector]) extends Actor {
@@ -47,7 +49,7 @@ object TcpStream {
       override def receive: Receive = {
         case Received(byteString) =>
           val data = ByteVector(byteString.toByteBuffer)
-          pushSpout.offer(data)
+          pushSpout.offer(data) // TODO
 
         case _: ConnectionClosed =>
           context.stop(self)
@@ -64,10 +66,10 @@ object TcpStream {
 
   def sender(bind: InetSocketAddress, remote: InetSocketAddress)(implicit actorSystem: ActorSystem): Drain[ByteVector, Future[Unit]] = {
     val sender = TcpSender.actor(bind, remote)
-
-    Drain.foreach[ByteVector] { byteVector =>
-      sender ! TcpSender.SendData(byteVector)
-    }.async("blocking-io")
+    implicit val timeout = Timeout(5 seconds)
+    Pipe[ByteVector].asyncBoundary(bufferSize = 0).flatMap { byteVector =>
+      sender ? TcpSender.SendData(byteVector)
+    }.to(Drain.ignore)
   }
 
   private class TcpSender(bind: InetSocketAddress, remote: InetSocketAddress) extends Actor {
@@ -91,6 +93,7 @@ object TcpStream {
       case TcpSender.SendData(data) =>
         println(s"sending $data")
         connection ! Write(ByteString(data.toByteBuffer))
+        sender() ! TcpSender.DataSent
 
       case f@CommandFailed(write: Write) =>
         println("write failed")
@@ -109,6 +112,8 @@ object TcpStream {
     def actor(bind: InetSocketAddress, remote: InetSocketAddress)(implicit actorSystem: ActorSystem): ActorRef = actorSystem.actorOf(props(bind, remote))
 
     case class SendData(byteVector: ByteVector)
+
+    case object DataSent
 
   }
 

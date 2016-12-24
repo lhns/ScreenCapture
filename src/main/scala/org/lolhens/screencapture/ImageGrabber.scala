@@ -9,10 +9,14 @@ import swave.core.Spout
   * Created by pierr on 11.12.2016.
   */
 object ImageGrabber {
-  def apply(graphicsDevice: GraphicsDevice): Spout[BufferedImage] = {
+  def apply(graphicsDevice: GraphicsDevice): Spout[(BufferedImage, Long)] = {
     val robot = new Robot(graphicsDevice)
     val screenSize = graphicsDevice.getDefaultConfiguration.getBounds
 
-    Spout.continually(robot.createScreenCapture(screenSize)).asyncBoundary("blocking-io", bufferSize = 1)
+    Spout.continually({
+      val bufferedImage = robot.createScreenCapture(screenSize)
+      val timestamp = System.currentTimeMillis()
+      (bufferedImage, timestamp)
+    }).asyncBoundary("blocking-io", bufferSize = 0)
   }
 }
