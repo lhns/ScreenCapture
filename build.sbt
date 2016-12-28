@@ -31,7 +31,12 @@ lazy val settings = Seq(
     "org.jcodec" % "jcodec-samples" % "0.2.0",
     "io.swave" % "swave-core_2.11" % "0.6.0",
     "io.swave" % "swave-akka-compat_2.11" % "0.6.0",
-    "io.swave" % "swave-scodec-compat_2.11" % "0.6.0"
+    "io.swave" % "swave-scodec-compat_2.11" % "0.6.0",
+    "com.github.julien-truffaut" %% "monocle-core" % "1.4.0-M2",
+    "com.github.julien-truffaut" %% "monocle-macro" % "1.4.0-M2",
+    "com.github.melrief" %% "pureconfig" % "0.4.0",
+    "eu.timepit" %% "refined" % "0.6.1",
+    "eu.timepit" %% "refined-pureconfig" % "0.6.1"
   ),
 
   addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
