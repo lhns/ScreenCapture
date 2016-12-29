@@ -12,6 +12,7 @@ lazy val settings = Seq(
 
   libraryDependencies ++= Seq(
     "org.scala-lang" % "scala-reflect" % "2.11.8",
+    "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0",
     "org.slf4j" % "slf4j-api" % "1.7.22",
     "ch.qos.logback" % "logback-classic" % "1.1.8",
     "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
