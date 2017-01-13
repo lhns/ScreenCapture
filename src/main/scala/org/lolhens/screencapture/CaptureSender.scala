@@ -16,7 +16,7 @@ import scala.language.postfixOps
   * Created by pierr on 11.12.2016.
   */
 object CaptureSender {
-  def apply(graphicsDevice: GraphicsDevice, remote: InetSocketAddress)(implicit streamEnv: StreamEnv, actorSystem: ActorSystem) = {
+  def apply(graphicsDevice: GraphicsDevice, remote: InetSocketAddress, fps: Double)(implicit streamEnv: StreamEnv, actorSystem: ActorSystem) = {
     val byteStreams: Seq[Spout[(ByteVector, Long)]] = for (
       _ <- 0 until Runtime.getRuntime.availableProcessors();
       grabber = ImageGrabber(graphicsDevice);
@@ -31,7 +31,7 @@ object CaptureSender {
       else
         (last, None)
     }
-      .throttle(1, 0.05d seconds)
+      .throttle(1, (1 / fps) seconds)
       .via(TcpCheckedLayer.wrap)
       .to(TcpStream.sender(new InetSocketAddress("0.0.0.0", 0), remote)).run()
   }

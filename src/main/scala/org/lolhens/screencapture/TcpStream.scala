@@ -12,11 +12,14 @@ import swave.core.{Drain, Pipe, PushSpout, Spout}
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.language.postfixOps
 
 /**
   * Created by u016595 on 13.12.2016.
   */
 object TcpStream {
+  var logging = false
+
   def receiver(bind: InetSocketAddress)(implicit actorSystem: ActorSystem): Spout[ByteVector] = {
     val pushSpout = PushSpout[ByteVector](2, 4)
     TcpReceiver.actor(bind, pushSpout)
@@ -49,7 +52,7 @@ object TcpStream {
       override def receive: Receive = {
         case Received(byteString) =>
           val data = ByteVector(byteString.toByteBuffer)
-          println(s"receiving $data")
+          if (logging) println(s"receiving $data")
           pushSpout.offer(data) // TODO
 
         case _: ConnectionClosed =>
@@ -81,7 +84,7 @@ object TcpStream {
 
     override def receive: Receive = {
       case CommandFailed(_: Connect) =>
-        println("connect failed")
+        if (logging) println("connect failed")
         context.stop(self)
 
       case Connected(remoteAddress, localAddress) =>
@@ -92,13 +95,12 @@ object TcpStream {
 
     def ready(connection: ActorRef): Receive = {
       case TcpSender.SendData(data) =>
-        println(s"sending $data")
+        if (logging) println(s"sending $data")
         connection ! Write(ByteString(data.toByteBuffer))
         sender() ! TcpSender.DataSent
 
       case f@CommandFailed(write: Write) =>
-        println("write failed")
-        println(f)
+        if (logging) println(s"write failed $f")
 
       case Received(data) =>
 

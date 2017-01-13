@@ -1,7 +1,7 @@
 package org.lolhens.screencapture
 
 import java.awt.image.BufferedImage
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.io.{BufferedInputStream, ByteArrayInputStream, ByteArrayOutputStream}
 import javax.imageio.ImageIO
 
 import scodec.bits.ByteVector
@@ -18,6 +18,12 @@ object ImageConverter {
     val bytes = ByteVector(outputStream.toByteArray)
     outputStream.close()
     bytes
+  }
+
+  def readFile(file: String): ByteVector = {
+    val inputStream = new BufferedInputStream(getClass.getClassLoader.getResourceAsStream(file))
+    val bytes = Stream.continually(inputStream.read()).takeWhile(_ != -1).map(_.toByte).toArray
+    ByteVector(bytes)
   }
 
   def toBytes2(bufferedImage: BufferedImage, format: String = "png"): ByteVector = {

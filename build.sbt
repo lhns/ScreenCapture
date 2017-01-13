@@ -1,7 +1,7 @@
 name := "ScreenCapture"
 
 lazy val settings = Seq(
-  version := "0.2.0",
+  version := "0.3.0",
 
   scalaOrganization := "org.typelevel",
   scalaVersion := "2.11.8",
@@ -46,6 +46,8 @@ lazy val settings = Seq(
   //addCompilerPlugin("com.milessabin" % "si2712fix-plugin_2.11.8" % "1.2.0"),
 
   mainClass in Compile := Some("org.lolhens.screencapture.Main"),
+
+  fork in run := true,
 
   dependencyUpdatesExclusions := moduleFilter(organization = "org.scala-lang"),
 
