@@ -52,8 +52,21 @@ lazy val settings = Seq(
   scalacOptions ++= Seq("-Xmax-classfile-name", "254")
 )
 
+lazy val classpathJar = Seq(
+  scriptClasspath := {
+    val manifest = new java.util.jar.Manifest()
+    manifest.getMainAttributes.putValue("Class-Path", scriptClasspath.value.mkString(" "))
+    val classpathJar = (target in Universal).value / "lib" / "classpath.jar"
+    IO.jar(Seq.empty, classpathJar, manifest)
+    Seq("classpath.jar")
+  },
+
+  mappings in Universal += ((target in Universal).value / "lib" / "classpath.jar", "lib/classpath.jar")
+)
+
 lazy val root = project.in(file("."))
   .enablePlugins(
     JavaAppPackaging,
     UniversalPlugin)
   .settings(settings: _*)
+  .settings(classpathJar: _*)
