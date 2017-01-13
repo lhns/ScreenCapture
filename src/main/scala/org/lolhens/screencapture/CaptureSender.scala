@@ -32,7 +32,7 @@ object CaptureSender {
         (last, None)
     }
       .throttle(1, 0.05d seconds)
-      .via(TcpCheckedLayer.toChunks2)
+      .via(TcpCheckedLayer.wrap)
       .to(TcpStream.sender(new InetSocketAddress("0.0.0.0", 0), remote)).run()
   }
 }

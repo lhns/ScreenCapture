@@ -37,7 +37,8 @@ lazy val settings = Seq(
     "com.github.julien-truffaut" %% "monocle-macro" % "1.4.0-M2",
     "com.github.melrief" %% "pureconfig" % "0.5.0",
     "eu.timepit" %% "refined" % "0.6.1",
-    "eu.timepit" %% "refined-pureconfig" % "0.6.1"
+    "eu.timepit" %% "refined-pureconfig" % "0.6.1",
+    "com.lihaoyi" %% "fastparse" % "0.4.1"
   ),
 
   addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),

@@ -12,14 +12,14 @@ import swave.core.StreamEnv
   * Created by pierr on 11.12.2016.
   */
 object CaptureReceiver {
-  def apply(graphicsDevice: GraphicsDevice, remote: InetSocketAddress)(implicit streamEnv: StreamEnv, actorSystem: ActorSystem) = {
+  def apply(graphicsDevice: GraphicsDevice, fullscreen: Boolean = false, remote: InetSocketAddress)(implicit streamEnv: StreamEnv, actorSystem: ActorSystem) = {
     val byteStream = TcpStream.receiver(remote)
       .buffer(20)
-      .via(TcpCheckedLayer.fromChunks2)
+      .via(TcpCheckedLayer.unwrap)
       .bufferDropping(4, OverflowStrategy.DropHead)
     val images = byteStream.asyncBoundary(bufferSize = 0)
-      .map(ImageConverter.fromBytes).map { e => println(e); e }
-    val window = ImageCanvas.fullscreen(graphicsDevice)
+      .map(ImageConverter.fromBytes)
+    val window = ImageCanvas.canvasDrain(graphicsDevice, fullscreen)
     val frameTry = images.map(_.toOption.flatMap(Option(_))).flattenConcat().onError(_.printStackTrace()).to(window).run()
     frameTry.mapResult(_.map(_.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)))
   }

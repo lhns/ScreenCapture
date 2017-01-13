@@ -1,62 +1,64 @@
 package org.lolhens.screencapture
 
 import cats.implicits._
+import monix.execution.atomic.Atomic
 import org.lolhens.screencapture.RichPipe._
 import org.lolhens.screencapture.RichSpout._
 import scodec.bits.ByteVector
 import swave.core.{Pipe, Spout}
 
-import scala.Option.option2Iterable
-
 /**
   * Created by pierr on 18.12.2016.
   */
 object TcpCheckedLayer {
-  def toChunks(byteVectors: Spout[ByteVector], chunkSize: Int = 512): Pipe[ByteVector, ByteVector] = {
-    Pipe[ByteVector].map[ByteVector] { bytes: ByteVector =>
-      val size = ByteVector.fromInt(bytes.size.toInt)
-      //val size2 = ByteVector.fromInt(bytes.size.toInt + 2)
-      println(bytes.size)
-      ByteVector.concat(bytes.grouped(chunkSize).map(e => size ++ /*ByteVector.fromInt(e.size.toInt) ++*/ e))
+  private val kilobyte = 1024
+  private val defaultChunkSize = 64 * kilobyte
+
+  private val packetCounter = Atomic(0L)
+
+  def chunker(chunkSize: Int = defaultChunkSize): Pipe[ByteVector, ByteVector] =
+    Pipe[ByteVector]
+      .flatMap[List[ByteVector], ByteVector] { bytes: ByteVector =>
+      val parts = bytes
+        .grouped(chunkSize)
+        .toList
+
+      val packetNum = packetCounter.getAndIncrement()
+
+      parts
+        .zipWithIndex
+        .map(e =>
+          ByteVector.fromLong(packetNum + e._2) ++
+            ByteVector.fromLong(packetNum) ++
+            ByteVector.fromLong(packetNum + parts.size) ++
+            e._1
+        )
+        .flatMap(e => List(e, e))
     }
-  }
 
-  case class State(inputBuffer: ByteVector, dataSize: Option[Int], dataBlocks: ByteVector)
+  case class ChunkerState(minPacketNum: Long = 0, maxPacketNum: Long = 0, chunks: Map[Long, ByteVector] = Map.empty)
 
-  object State {
-    val empty = State(ByteVector.empty, None, ByteVector.empty)
-  }
+  lazy val unchunker: Pipe[ByteVector, ByteVector] =
+    Pipe[ByteVector]
+      .scanFlatMap[ChunkerState, List, ByteVector](ChunkerState()) { (last: ChunkerState, bytes: ByteVector) =>
+      val packetNum = bytes.take(8).toLong()
+      val minPacketNum = bytes.drop(8).take(8).toLong()
+      val maxPacketNum = bytes.drop(16).take(8).toLong()
+      val data = bytes.drop(24)
 
-  def fromChunks(byteVectors: Spout[ByteVector], chunkSize: Int = 512): Spout[ByteVector] = {
-    byteVectors.scanFlatMap[State, Spout, ByteVector](State.empty) { (last, e) =>
-      val newInputBuffer = last.inputBuffer ++ e
-      println(newInputBuffer)
+      val state =
+        if (maxPacketNum != last.maxPacketNum)
+          last.copy(minPacketNum = minPacketNum, maxPacketNum = maxPacketNum, chunks = Map(packetNum -> data))
+        else
+          last.copy(chunks = last.chunks + (packetNum -> data))
 
-      val newDataSize = Some(newInputBuffer).filter(_.size >= 4).map(_.take(4).toInt())
-      println(newDataSize)
-
-      if (last.dataSize.zip(newDataSize).exists(e => e._1 != e._2))
-        (State(e, None, ByteVector.empty), Spout.empty)
-      else {
-        val newNewDataSize = last.dataSize.getOrElse(newDataSize.get)
-        val currentChunkSize: Int = last.dataSize.map(_ - last.dataBlocks.size.toInt).filter(_ <= chunkSize).getOrElse(chunkSize)
-        val (newDataBlocks, newNewInputBuffer) =
-          if (newInputBuffer.size >= 4 + currentChunkSize)
-            (last.dataBlocks ++ newInputBuffer.drop(4).take(currentChunkSize), newInputBuffer.drop(4).drop(currentChunkSize))
-          else
-            (last.dataBlocks, newInputBuffer)
-
-        if (newDataBlocks.size >= newNewDataSize) {
-          println("emit")
-          (State(newNewInputBuffer, Some(newNewDataSize), newDataBlocks.drop(newNewDataSize)), Spout.one(newDataBlocks.take(newNewDataSize)))
-        } else
-          (State(newNewInputBuffer, Some(newNewDataSize), newDataBlocks), Spout.empty)
-      }
+      if (state.chunks.size >= state.maxPacketNum - state.minPacketNum)
+        (state.copy(chunks = Map.empty), List(ByteVector.concat(state.chunks.toList.sortBy(_._1).map(_._2))))
+      else
+        (state, Nil)
     }
-      .map { e: ByteVector => println(s"received $e"); e }
-  }
 
-  val toChunks2: Pipe[ByteVector, ByteVector] = Pipe[ByteVector].map { bytes =>
+  lazy val wrap: Pipe[ByteVector, ByteVector] = Pipe[ByteVector].map { bytes =>
     val size = ByteVector.fromInt(bytes.size.toInt)
     val sizeCheck = ByteVector.fromInt(Integer.MAX_VALUE - bytes.size.toInt)
     size ++ sizeCheck ++ bytes
@@ -64,7 +66,7 @@ object TcpCheckedLayer {
 
   private case object Err
 
-  val fromChunks2: Pipe[ByteVector, ByteVector] = {
+  lazy val unwrap: Pipe[ByteVector, ByteVector] = {
     Pipe[ByteVector].scanFlatMap[ByteVector, Spout, ByteVector](ByteVector.empty) { (last, e) =>
       val buffer: ByteVector = last ++ e
       val sizeOption: Option[Either[Err.type, Int]] = Some(buffer).filter(_.size >= 8).map { buffer =>

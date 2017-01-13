@@ -49,6 +49,7 @@ object TcpStream {
       override def receive: Receive = {
         case Received(byteString) =>
           val data = ByteVector(byteString.toByteBuffer)
+          println(s"receiving $data")
           pushSpout.offer(data) // TODO
 
         case _: ConnectionClosed =>

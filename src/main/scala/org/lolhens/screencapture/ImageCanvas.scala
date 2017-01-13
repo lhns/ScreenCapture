@@ -1,7 +1,7 @@
 package org.lolhens.screencapture
 
 import java.awt.image.BufferedImage
-import java.awt.{Component, Graphics, GraphicsDevice}
+import java.awt.{Component, Frame, Graphics, GraphicsDevice}
 import javax.swing.JFrame
 
 import swave.core.{Drain, DrainUtil}
@@ -25,18 +25,20 @@ object ImageCanvas {
     }(component)
   }
 
-  def fullscreenWindow(graphicsDevice: GraphicsDevice): JFrame = {
+  def canvas(graphicsDevice: GraphicsDevice, fullscreen: Boolean = false): JFrame = {
     val frame = new JFrame(graphicsDevice.getDefaultConfiguration)
     frame.setSize(800, 600)
-    //frame.setExtendedState(Frame.MAXIMIZED_BOTH)
-    //frame.setUndecorated(true)
+    if (fullscreen) {
+      frame.setExtendedState(Frame.MAXIMIZED_BOTH)
+      frame.setUndecorated(true)
+    }
     frame.setVisible(true)
     frame
   }
 
-  def fullscreen(graphicsDevice: GraphicsDevice): Drain[BufferedImage, JFrame] = {
+  def canvasDrain(graphicsDevice: GraphicsDevice, fullscreen: Boolean = false): Drain[BufferedImage, JFrame] = {
     apply().mapResult { component =>
-      val frame = fullscreenWindow(graphicsDevice)
+      val frame = canvas(graphicsDevice, fullscreen)
       frame.add(component)
       frame
     }
