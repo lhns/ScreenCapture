@@ -39,7 +39,7 @@ object TcpStream {
       case Connected(remoteAddress, localAddress) =>
         val connection = sender()
         val handler = TcpReceiver.TcpHandler.actor(connection, pushSpout)
-        connection ! Register(handler)
+        connection ! Register(handler, useResumeWriting = false)
     }
   }
 
@@ -54,8 +54,13 @@ object TcpStream {
           val data = ByteVector(byteString.toByteBuffer)
           if (logging) println(s"receiving $data")
           pushSpout.offer(data) // TODO
+          connection ! Write(ByteString(ByteVector(1).toByteBuffer))
 
-        case _: ConnectionClosed =>
+        case failed@CommandFailed(_: Write) =>
+          if (logging) println(s"write failed $failed")
+
+        case closed: ConnectionClosed =>
+          if (logging) println(s"connection closed $closed")
           context.stop(self)
       }
     }
@@ -89,22 +94,28 @@ object TcpStream {
 
       case Connected(remoteAddress, localAddress) =>
         val connection = sender()
-        connection ! Register(self)
+        connection ! Register(self, useResumeWriting = false)
         context.become(ready(connection))
     }
 
     def ready(connection: ActorRef): Receive = {
       case TcpSender.SendData(data) =>
         if (logging) println(s"sending $data")
-        connection ! Write(ByteString(data.toByteBuffer))
-        sender() ! TcpSender.DataSent
+        connection ! Write(ByteString(data.toByteBuffer), TcpSender.Ack)
+        val asker = sender()
+        context.become {
+          case TcpSender.Ack =>
+            context.become(ready(connection))
+            asker ! TcpSender.Ack
+        }
 
-      case f@CommandFailed(write: Write) =>
+      case f@CommandFailed(_: Write) =>
         if (logging) println(s"write failed $f")
 
       case Received(data) =>
 
-      case _: ConnectionClosed =>
+      case closed: ConnectionClosed =>
+        if (logging) println(s"connection closed $closed")
         context.stop(self)
     }
   }
@@ -116,7 +127,7 @@ object TcpStream {
 
     case class SendData(byteVector: ByteVector)
 
-    case object DataSent
+    case object Ack extends Event
 
   }
 

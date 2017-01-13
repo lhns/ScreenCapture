@@ -4,6 +4,7 @@ import java.awt.{GraphicsDevice, GraphicsEnvironment}
 import java.net.InetSocketAddress
 
 import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
 import fastparse.all._
 import org.lolhens.screencapture.ParserUtils._
 import swave.core.StreamEnv
@@ -41,13 +42,15 @@ object Main {
 
     implicit val streamEnv = StreamEnv()
     implicit val actorSystem = ActorSystem()
+    implicit val materializer = ActorMaterializer()
 
     options.host match {
       case Some(host) =>
         CaptureSender(
           selectScreen(options.monitor),
           new InetSocketAddress(host, options.port),
-          fps = options.fps
+          fps = options.fps,
+          maxLatency = Math.max(2 / options.fps, 500).toInt
         )
 
       case None =>

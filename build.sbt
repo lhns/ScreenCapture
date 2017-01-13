@@ -58,6 +58,52 @@ lazy val settings = Seq(
   dependencyUpdatesExclusions := moduleFilter(organization = "org.scala-lang"),
 
   scalacOptions ++= Seq("-Xmax-classfile-name", "254")
+
+) ++ proguardSettings ++ Seq(
+  ProguardKeys.proguardVersion in Proguard := "5.3.2",
+  javaOptions in(Proguard, ProguardKeys.proguard) := Seq("-Xmx2G"),
+
+  ProguardKeys.inputs in Proguard := Seq(baseDirectory.value / "target" / s"scala-${scalaVersion.value.dropRight(2)}" / s"${name.value}-assembly-${version.value}.jar"),
+
+  ProguardKeys.inputFilter in Proguard := (_ => None),
+  ProguardKeys.libraries in Proguard := Seq(),
+  ProguardKeys.merge in Proguard := false,
+
+  (ProguardKeys.options in Proguard) ++= Seq(
+    "-libraryjars <java.home>/lib/rt.jar",
+    "-dontnote", "-dontwarn", "-ignorewarnings",
+    "-dontobfuscate",
+    "-dontoptimize",
+    "-keepattributes Signature, *Annotation*",
+    "-keepclassmembers class * {** MODULE$;}"
+  ) ++ Seq(
+    "* extends akka.dispatch.ExecutorServiceConfigurator",
+    "* extends akka.dispatch.MessageDispatcherConfigurator",
+    "* extends akka.remote.RemoteTransport",
+    "* implements akka.actor.Actor",
+    "* implements akka.actor.ActorRefProvider",
+    "* implements akka.actor.ExtensionId",
+    "* implements akka.actor.ExtensionIdProvider",
+    "* implements akka.actor.SupervisorStrategyConfigurator",
+    "* implements akka.dispatch.MailboxType",
+    "* implements akka.routing.RouterConfig",
+    "* implements akka.serialization.Serializer",
+    "akka.*.*MessageQueueSemantics",
+    "akka.actor.LightArrayRevolverScheduler",
+    "akka.actor.LocalActorRefProvider",
+    "akka.actor.SerializedActorRef",
+    "akka.dispatch.MultipleConsumerSemantics",
+    "akka.event.Logging$LogExt",
+    "akka.event.Logging*",
+    "akka.remote.DaemonMsgCreate",
+    "akka.routing.ConsistentHashingPool",
+    "akka.routing.RoutedActorCell$RouterActorCreator",
+    "akka.event.DefaultLoggingFilter"
+  ).map(clazz => s"-keep class $clazz {*;}"),
+
+  (ProguardKeys.options in Proguard) += ProguardOptions.keepMain("org.lolhens.screencapture.Main"),
+
+  (ProguardKeys.proguard in Proguard) := (ProguardKeys.proguard in Proguard).dependsOn(assembly).value
 )
 
 lazy val classpathJar = Seq(

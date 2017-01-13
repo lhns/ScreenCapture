@@ -6,6 +6,7 @@ import java.net.InetSocketAddress
 import java.time.LocalDateTime
 
 import akka.actor.ActorSystem
+import akka.stream.Materializer
 import monix.execution.atomic.Atomic
 import swave.core.Buffer.OverflowStrategy
 import swave.core.{Spout, StreamEnv}
@@ -18,7 +19,7 @@ import scala.language.postfixOps
   */
 object CaptureReceiver {
   def apply(graphicsDevice: GraphicsDevice, fullscreen: Boolean, remote: InetSocketAddress, timeout: Int)
-           (implicit streamEnv: StreamEnv, actorSystem: ActorSystem) = {
+           (implicit streamEnv: StreamEnv, actorSystem: ActorSystem, materializer: Materializer) = {
     lazy val connectingImage = ImageConverter.fromBytes(ImageConverter.readFile("connecting.png"))
 
     val lastImage = Atomic(LocalDateTime.now())
