@@ -49,6 +49,12 @@ lazy val settings = Seq(
 
   fork in run := true,
 
+  assemblyMergeStrategy in assembly := {
+    case PathList("scala", _*) | PathList("library.properties") =>
+      MergeStrategy.first
+    case file => (assemblyMergeStrategy in assembly).value.apply(file)
+  },
+
   dependencyUpdatesExclusions := moduleFilter(organization = "org.scala-lang"),
 
   scalacOptions ++= Seq("-Xmax-classfile-name", "254")
