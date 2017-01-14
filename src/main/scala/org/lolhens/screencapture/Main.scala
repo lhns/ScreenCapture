@@ -32,9 +32,10 @@ object Main {
             |  -p [port]     Overrides the default port (51234)
             |  -f            Activates fullscreen-mode
             |  -m [monitor]  Overrides the default monitor
-            |  -r            Overrides the default framerate (20fps)
-            |  -t            Timeout in seconds
-            |  -l            Turn logging on""".stripMargin)
+            |  -t [timeout]  Timeout in seconds
+            |  -l [latency]  Override the default maximum latency (800ms)
+            |  -fps [rate]   Overrides the default framerate (20fps)
+            |  -log          Turn logging on""".stripMargin)
 
         System.exit(0)
         throw new IllegalStateException()
@@ -50,7 +51,7 @@ object Main {
           selectScreen(options.monitor),
           new InetSocketAddress(host, options.port),
           fps = options.fps,
-          maxLatency = Math.max(2 / options.fps, 500).toInt
+          maxLatency = 300
         )
 
       case None =>
@@ -79,7 +80,9 @@ object Main {
                      monitor: Int,
                      fps: Double,
                      timeout: Int,
-                     logging: Boolean) {
+                     logging: Boolean,
+                     latency: Int) {
+    ImageGrabber.logging = logging
     TcpStream.logging = logging
   }
 
@@ -96,9 +99,10 @@ object Main {
     private val portParser = intParser("-p")
     private val fullscreenParser = booleanOption("-f")
     private val monitorParser = intParser("-m")
-    private val framerateParser = doubleParser("-r")
+    private val framerateParser = doubleParser("-fps")
     private val timeoutParser = intParser("-t")
-    private val loggingParser = booleanOption("-l")
+    private val loggingParser = booleanOption("-log")
+    private val latencyParser = intParser("-l")
 
     private val parser =
       any(Map(
@@ -108,7 +112,8 @@ object Main {
         monitorParser -> monitorParser,
         framerateParser -> framerateParser,
         loggingParser -> loggingParser,
-        timeoutParser -> timeoutParser
+        timeoutParser -> timeoutParser,
+        latencyParser -> latencyParser
       ))
         .rep(sep = s1)
         .map(_.toMap)
@@ -120,7 +125,8 @@ object Main {
             monitor = values.collectFirst { case (`monitorParser`, monitor: Int) => monitor }.getOrElse(-1),
             fps = values.collectFirst { case (`framerateParser`, fps: Double) => fps }.getOrElse(20),
             timeout = values.collectFirst { case (`timeoutParser`, timeout: Int) => timeout }.getOrElse(3),
-            logging = values.collectFirst { case (`loggingParser`, logging: Boolean) => logging }.getOrElse(false)
+            logging = values.collectFirst { case (`loggingParser`, logging: Boolean) => logging }.getOrElse(false),
+            latency = values.collectFirst { case (`latencyParser`, latency: Int) => latency }.getOrElse(800)
           )
         }
 

@@ -63,6 +63,11 @@ lazy val settings = Seq(
   ProguardKeys.proguardVersion in Proguard := "5.3.2",
   javaOptions in(Proguard, ProguardKeys.proguard) := Seq("-Xmx2G"),
 
+  (ProguardKeys.options in Proguard) ++= Seq(
+    ProguardOptions.keepMain("org.lolhens.screencapture.Main"),
+    ProguardOptions.keepMain("org.lolhens.screencapture.Test")
+  ),
+
   ProguardKeys.inputs in Proguard := Seq(baseDirectory.value / "target" / s"scala-${scalaVersion.value.dropRight(2)}" / s"${name.value}-assembly-${version.value}.jar"),
 
   ProguardKeys.inputFilter in Proguard := (_ => None),
@@ -100,8 +105,6 @@ lazy val settings = Seq(
     "akka.routing.RoutedActorCell$RouterActorCreator",
     "akka.event.DefaultLoggingFilter"
   ).map(clazz => s"-keep class $clazz {*;}"),
-
-  (ProguardKeys.options in Proguard) += ProguardOptions.keepMain("org.lolhens.screencapture.Main"),
 
   (ProguardKeys.proguard in Proguard) := (ProguardKeys.proguard in Proguard).dependsOn(assembly).value
 )

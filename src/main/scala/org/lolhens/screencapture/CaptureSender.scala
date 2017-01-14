@@ -19,21 +19,22 @@ import scala.language.postfixOps
 object CaptureSender {
   def apply(graphicsDevice: GraphicsDevice, remote: InetSocketAddress, fps: Double, maxLatency: Int)
            (implicit streamEnv: StreamEnv, actorSystem: ActorSystem, materializer: Materializer) = {
+    val parallelism = Runtime.getRuntime.availableProcessors()
+
     val byteStreams: Seq[Spout[(ByteVector, Long)]] = for (
-      _ <- 0 until Runtime.getRuntime.availableProcessors();
+      _ <- 0 until parallelism;
       grabber = ImageGrabber(graphicsDevice);
       byteStream = grabber.map(e => (ImageConverter.toBytes2(e._1, "png"), e._2)).asyncBoundary(bufferSize = 0)
     ) yield byteStream: Spout[(ByteVector, Long)]
 
     Spout.fromIterable(byteStreams)
-      .flattenMerge(2)
+      .flattenMerge(4)
       .scanFlatMap[Long, Option, (ByteVector, Long)](0L) { (last, e) =>
       if (e._2 >= last)
         (e._2, Some(e))
       else
         (last, None)
     }
-      .throttle(1, (1 / fps) seconds)
       .flatMap { e =>
         val now = System.currentTimeMillis()
         if (now - e._2 > maxLatency)
@@ -41,6 +42,7 @@ object CaptureSender {
         else
           Some(e._1)
       }
+      .throttle(1, (1 / fps) seconds)
       .via(TcpCheckedLayer.wrap)
       .to(TcpStream.sender(new InetSocketAddress("0.0.0.0", 0), remote)).run()
   }
