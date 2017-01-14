@@ -35,12 +35,20 @@ object Main {
             |  -t [timeout]  Timeout in seconds
             |  -l [latency]  Override the default maximum latency (800ms)
             |  -fps [rate]   Overrides the default framerate (20fps)
-            |  -log          Turn logging on""".stripMargin)
+            |  -log          Turn logging on
+            |  -tree         Shows a tree""".stripMargin)
 
         System.exit(0)
         throw new IllegalStateException()
     }
 
+    if (options.tree)
+      Test.main(new Array(0))
+    else
+      start(options)
+  }
+
+  def start(options: Options) = {
     implicit val streamEnv = StreamEnv()
     implicit val actorSystem = ActorSystem()
     implicit val materializer = ActorMaterializer()
@@ -81,7 +89,8 @@ object Main {
                      fps: Double,
                      timeout: Int,
                      logging: Boolean,
-                     latency: Int) {
+                     latency: Int,
+                     tree: Boolean) {
     ImageGrabber.logging = logging
     TcpStream.logging = logging
   }
@@ -103,6 +112,7 @@ object Main {
     private val timeoutParser = intParser("-t")
     private val loggingParser = booleanOption("-log")
     private val latencyParser = intParser("-l")
+    private val treeParser = booleanOption("-tree")
 
     private val parser =
       any(Map(
@@ -113,7 +123,8 @@ object Main {
         framerateParser -> framerateParser,
         loggingParser -> loggingParser,
         timeoutParser -> timeoutParser,
-        latencyParser -> latencyParser
+        latencyParser -> latencyParser,
+        treeParser -> treeParser
       ))
         .rep(sep = s1)
         .map(_.toMap)
@@ -126,7 +137,8 @@ object Main {
             fps = values.collectFirst { case (`framerateParser`, fps: Double) => fps }.getOrElse(20),
             timeout = values.collectFirst { case (`timeoutParser`, timeout: Int) => timeout }.getOrElse(3),
             logging = values.collectFirst { case (`loggingParser`, logging: Boolean) => logging }.getOrElse(false),
-            latency = values.collectFirst { case (`latencyParser`, latency: Int) => latency }.getOrElse(800)
+            latency = values.collectFirst { case (`latencyParser`, latency: Int) => latency }.getOrElse(800),
+            tree = values.collectFirst { case (`treeParser`, tree: Boolean) => tree }.getOrElse(false)
           )
         }
 
