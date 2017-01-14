@@ -63,7 +63,7 @@ lazy val settings = Seq(
   ProguardKeys.proguardVersion in Proguard := "5.3.2",
   javaOptions in(Proguard, ProguardKeys.proguard) := Seq("-Xmx2G"),
 
-  (ProguardKeys.options in Proguard) ++= ProguardOptions.keepMain("org.lolhens.screencapture.Main"),
+  (ProguardKeys.options in Proguard) += ProguardOptions.keepMain("org.lolhens.screencapture.Main"),
 
   ProguardKeys.inputs in Proguard := Seq(baseDirectory.value / "target" / s"scala-${scalaVersion.value.dropRight(2)}" / s"${name.value}-assembly-${version.value}.jar"),
 
