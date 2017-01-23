@@ -17,18 +17,16 @@ import scala.language.postfixOps
   * Created by pierr on 11.12.2016.
   */
 object CaptureSender {
-  def apply(graphicsDevice: GraphicsDevice, remote: InetSocketAddress, fps: Double, maxLatency: Int)
+  def apply(graphicsDevice: GraphicsDevice, remote: InetSocketAddress, parallelism: Int, fps: Double, maxLatency: Int)
            (implicit streamEnv: StreamEnv, actorSystem: ActorSystem, materializer: Materializer) = {
-    val parallelism = Runtime.getRuntime.availableProcessors()
-
     val byteStreams: Seq[Spout[(ByteVector, Long)]] = for (
-      _ <- 0 until parallelism;
+      _ <- 0 until 2;
       grabber = ImageGrabber(graphicsDevice);
       byteStream = grabber.map(e => (ImageConverter.toBytes2(e._1, "png"), e._2)).asyncBoundary(bufferSize = 0)
     ) yield byteStream: Spout[(ByteVector, Long)]
 
     Spout.fromIterable(byteStreams)
-      .flattenMerge(4)
+      .flattenMerge(Math.min(parallelism, 4))
       .scanFlatMap[Long, Option, (ByteVector, Long)](0L) { (last, e) =>
       if (e._2 >= last)
         (e._2, Some(e))

@@ -28,15 +28,16 @@ object Main {
         println(
           """
             |Options:
-            |  -h [host]     Activates the client-mode and specifies the host
-            |  -p [port]     Overrides the default port (51234)
-            |  -f            Activates fullscreen-mode
-            |  -m [monitor]  Overrides the default monitor
-            |  -t [timeout]  Timeout in seconds
-            |  -l [latency]  Override the default maximum latency (800ms)
-            |  -fps [rate]   Overrides the default framerate (20fps)
-            |  -log          Turn logging on
-            |  -tree         Shows a tree""".stripMargin)
+            |  -h [host]           Activates the client-mode and specifies the host
+            |  -p [port]           Overrides the default port (51234)
+            |  -f                  Activates fullscreen-mode
+            |  -m [monitor]        Overrides the default monitor
+            |  -t [timeout]        Timeout in seconds
+            |  -par [parallelism]  Parallelism (numProcessors / 2)
+            |  -l [latency]        Override the default maximum latency (800ms)
+            |  -fps [rate]         Overrides the default framerate (20fps)
+            |  -log                Turn logging on
+            |  -tree               Shows a tree""".stripMargin)
 
         System.exit(0)
         throw new IllegalStateException()
@@ -58,8 +59,9 @@ object Main {
         CaptureSender(
           selectScreen(options.monitor),
           new InetSocketAddress(host, options.port),
+          parallelism = options.parallelism,
           fps = options.fps,
-          maxLatency = 300
+          maxLatency = options.latency
         )
 
       case None =>
@@ -89,6 +91,7 @@ object Main {
                      fps: Double,
                      timeout: Int,
                      logging: Boolean,
+                     parallelism: Int,
                      latency: Int,
                      tree: Boolean) {
     ImageGrabber.logging = logging
@@ -111,21 +114,23 @@ object Main {
     private val framerateParser = doubleParser("-fps")
     private val timeoutParser = intParser("-t")
     private val loggingParser = booleanOption("-log")
+    private val parallelismParser = intParser("-par")
     private val latencyParser = intParser("-l")
     private val treeParser = booleanOption("-tree")
 
     private val parser =
-      any(Map(
-        hostParser -> hostParser,
-        portParser -> portParser,
-        fullscreenParser -> fullscreenParser,
-        monitorParser -> monitorParser,
-        framerateParser -> framerateParser,
-        loggingParser -> loggingParser,
-        timeoutParser -> timeoutParser,
-        latencyParser -> latencyParser,
-        treeParser -> treeParser
-      ))
+      any(Seq(
+        hostParser,
+        portParser,
+        fullscreenParser,
+        monitorParser,
+        framerateParser,
+        loggingParser,
+        timeoutParser,
+        parallelismParser,
+        latencyParser,
+        treeParser
+      ).map(e => e -> e).toMap)
         .rep(sep = s1)
         .map(_.toMap)
         .map { values =>
@@ -137,6 +142,10 @@ object Main {
             fps = values.collectFirst { case (`framerateParser`, fps: Double) => fps }.getOrElse(20),
             timeout = values.collectFirst { case (`timeoutParser`, timeout: Int) => timeout }.getOrElse(3),
             logging = values.collectFirst { case (`loggingParser`, logging: Boolean) => logging }.getOrElse(false),
+            parallelism = values.collectFirst { case (`parallelismParser`, parallelism: Int) => parallelism }
+              .getOrElse {
+                Runtime.getRuntime.availableProcessors() / 2
+              },
             latency = values.collectFirst { case (`latencyParser`, latency: Int) => latency }.getOrElse(800),
             tree = values.collectFirst { case (`treeParser`, tree: Boolean) => tree }.getOrElse(false)
           )
