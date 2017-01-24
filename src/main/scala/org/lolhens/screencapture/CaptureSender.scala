@@ -20,8 +20,8 @@ object CaptureSender {
   def apply(graphicsDevice: GraphicsDevice, remote: InetSocketAddress, parallelism: Int, fps: Double, maxLatency: Int)
            (implicit streamEnv: StreamEnv, actorSystem: ActorSystem, materializer: Materializer) = {
     val byteStreams: Seq[Spout[(ByteVector, Long)]] = for (
-      _ <- 0 until 2;
-      grabber = ImageGrabber(graphicsDevice);
+      _ <- 0 until parallelism;
+      grabber = ImageGrabber(graphicsDevice).asyncBoundary("blocking-io", bufferSize = 0);
       byteStream = grabber.map(e => (ImageConverter.toBytes2(e._1, "png"), e._2)).asyncBoundary(bufferSize = 0)
     ) yield byteStream: Spout[(ByteVector, Long)]
 
@@ -41,6 +41,7 @@ object CaptureSender {
           Some(e._1)
       }
       .throttle(1, (1 / fps) seconds)
+
       .via(TcpCheckedLayer.wrap)
       .to(TcpStream.sender(new InetSocketAddress("0.0.0.0", 0), remote)).run()
   }
