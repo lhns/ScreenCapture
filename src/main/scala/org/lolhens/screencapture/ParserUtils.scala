@@ -55,14 +55,23 @@ object ParserUtils {
         last
 
       case head :: tail =>
-        head | any(tail: _*)
+        head ||| any(tail: _*)
     }
 
   def any[K, V](parsers: Map[K, Parser[V]]): Parser[(K, V)] =
     any[(K, V)](parsers.toList.map(e => e._2.map(e._1 -> _)): _*)
 
-  implicit class RichParsed[T](val parsed: Parsed[T]) extends AnyVal {
-    def tried: Try[T] = parsed match {
+  implicit class RichParser[T](val self: Parser[T]) extends AnyVal {
+    def |||[E >: T](parser: Parser[E]): Parser[E] =
+      (&(self).!.map(_.length) ~ &(parser).!.map(_.length)).flatMap {
+        case (length1, length2) =>
+          if (length2 > length1) parser
+          else self
+      } | self | parser
+  }
+
+  implicit class RichParsed[T](val self: Parsed[T]) extends AnyVal {
+    def tried: Try[T] = self match {
       case Parsed.Success(result, _) =>
         Success(result)
 
