@@ -122,9 +122,9 @@ object Main {
       any(Seq(
         hostParser,
         portParser,
-        fullscreenParser,
         monitorParser,
         framerateParser,
+        fullscreenParser,
         loggingParser,
         timeoutParser,
         parallelismParser,

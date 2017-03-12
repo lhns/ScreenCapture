@@ -107,6 +107,9 @@ object TcpStream {
           case TcpSender.Ack =>
             context.become(ready(connection))
             asker ! TcpSender.Ack
+
+          case f@CommandFailed(_: Write) =>
+            if (logging) println(s"!!!! write failed $f")
         }
 
       case f@CommandFailed(_: Write) =>
