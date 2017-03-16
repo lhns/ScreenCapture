@@ -1,49 +1,48 @@
 name := "ScreenCapture"
 
 lazy val settings = Seq(
-  version := "0.4.1",
+  version := "0.4.2",
 
   scalaOrganization := "org.typelevel",
-  scalaVersion := "2.11.8",
+  scalaVersion := "2.12.1",
 
   resolvers := Seq("Artifactory" at "http://lolhens.no-ip.org/artifactory/libs-release/"),
 
   classpathTypes += "maven-plugin",
 
   libraryDependencies ++= Seq(
-    "org.scala-lang" % "scala-reflect" % "2.11.8",
+    "org.scala-lang" % "scala-reflect" % "2.12.1",
     "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0",
-    "org.slf4j" % "slf4j-api" % "1.7.22",
-    "ch.qos.logback" % "logback-classic" % "1.1.8",
+    "org.slf4j" % "slf4j-api" % "1.7.25",
+    "ch.qos.logback" % "logback-classic" % "1.2.1",
     "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
-    "org.typelevel" %% "cats" % "0.8.1",
+    "org.typelevel" %% "cats" % "0.9.0",
     "com.chuusai" %% "shapeless" % "2.3.2",
     "com.github.mpilquist" %% "simulacrum" % "0.10.0",
-    "io.monix" %% "monix" % "2.1.2",
-    "io.monix" %% "monix-cats" % "2.1.2",
-    "org.atnos" %% "eff" % "2.2.0",
-    "com.typesafe.akka" %% "akka-actor" % "2.4.16",
-    "com.typesafe.akka" %% "akka-remote" % "2.4.16",
-    "com.typesafe.akka" %% "akka-stream" % "2.4.16",
+    "io.monix" %% "monix" % "2.2.3",
+    "io.monix" %% "monix-cats" % "2.2.3",
+    "org.atnos" %% "eff" % "3.1.0",
+    "com.typesafe.akka" %% "akka-actor" % "2.4.17",
+    "com.typesafe.akka" %% "akka-remote" % "2.4.17",
+    "com.typesafe.akka" %% "akka-stream" % "2.4.17",
     "io.spray" %% "spray-json" % "1.3.3",
     "com.github.fommil" %% "spray-json-shapeless" % "1.3.0",
-    "org.scodec" % "scodec-bits_2.11" % "1.1.4",
+    "org.scodec" %% "scodec-bits" % "1.1.4",
     "org.jcodec" % "jcodec-javase" % "0.2.0",
     "org.jcodec" % "jcodec-samples" % "0.2.0",
-    "io.swave" % "swave-core_2.11" % "0.6.0",
-    "io.swave" % "swave-akka-compat_2.11" % "0.6.0",
-    "io.swave" % "swave-scodec-compat_2.11" % "0.6.0",
-    "com.github.julien-truffaut" %% "monocle-core" % "1.4.0-M2",
-    "com.github.julien-truffaut" %% "monocle-macro" % "1.4.0-M2",
-    "com.github.melrief" %% "pureconfig" % "0.5.0",
-    "eu.timepit" %% "refined" % "0.6.1",
-    "eu.timepit" %% "refined-pureconfig" % "0.6.1",
-    "com.lihaoyi" %% "fastparse" % "0.4.1"
+    "io.swave" %% "swave-core" % "0.7.0",
+    "io.swave" %% "swave-akka-compat" % "0.7.0",
+    "io.swave" %% "swave-scodec-compat" % "0.7.0",
+    "com.github.julien-truffaut" %% "monocle-core" % "1.4.0",
+    "com.github.julien-truffaut" %% "monocle-macro" % "1.4.0",
+    "com.github.melrief" %% "pureconfig" % "0.6.0",
+    "eu.timepit" %% "refined" % "0.7.0",
+    "eu.timepit" %% "refined-pureconfig" % "0.7.0",
+    "com.lihaoyi" %% "fastparse" % "0.4.2"
   ),
 
   addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
   addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.3"),
-  //addCompilerPlugin("com.milessabin" % "si2712fix-plugin_2.11.8" % "1.2.0"),
 
   mainClass in Compile := Some("org.lolhens.screencapture.Main"),
 
@@ -71,37 +70,62 @@ lazy val settings = Seq(
   ProguardKeys.libraries in Proguard := Seq(),
   ProguardKeys.merge in Proguard := false,
 
-  (ProguardKeys.options in Proguard) ++= Seq(
-    "-libraryjars <java.home>/lib/rt.jar",
-    "-dontnote", "-dontwarn", "-ignorewarnings",
-    "-dontobfuscate",
-    "-dontoptimize",
-    "-keepattributes Signature, *Annotation*",
-    "-keepclassmembers class * {** MODULE$;}"
-  ) ++ Seq(
-    "* extends akka.dispatch.ExecutorServiceConfigurator",
-    "* extends akka.dispatch.MessageDispatcherConfigurator",
-    "* extends akka.remote.RemoteTransport",
-    "* implements akka.actor.Actor",
-    "* implements akka.actor.ActorRefProvider",
-    "* implements akka.actor.ExtensionId",
-    "* implements akka.actor.ExtensionIdProvider",
-    "* implements akka.actor.SupervisorStrategyConfigurator",
-    "* implements akka.dispatch.MailboxType",
-    "* implements akka.routing.RouterConfig",
-    "* implements akka.serialization.Serializer",
-    "akka.*.*MessageQueueSemantics",
-    "akka.actor.LightArrayRevolverScheduler",
-    "akka.actor.LocalActorRefProvider",
-    "akka.actor.SerializedActorRef",
-    "akka.dispatch.MultipleConsumerSemantics",
-    "akka.event.Logging$LogExt",
-    "akka.event.Logging*",
-    "akka.remote.DaemonMsgCreate",
-    "akka.routing.ConsistentHashingPool",
-    "akka.routing.RoutedActorCell$RouterActorCreator",
-    "akka.event.DefaultLoggingFilter"
-  ).map(clazz => s"-keep class $clazz {*;}"),
+  (ProguardKeys.options in Proguard) ++= {
+    val libraryJars = Seq(
+      "<java.home>/lib/rt.jar",
+      "<java.home>/lib/ext/jfxrt.jar"
+    )
+
+    val settings = Seq(
+      "dontnote", "dontwarn", "ignorewarnings",
+      "dontobfuscate",
+      "dontoptimize",
+      "keepattributes Signature, *Annotation*",
+      "keepclassmembers class * {** MODULE$;}"
+    )
+
+    val excluded: Seq[String] = {
+      val scala_2_12 = Seq(
+        "scala.Symbol"
+      )
+      val akka = Seq(
+        "* extends akka.dispatch.ExecutorServiceConfigurator",
+        "* extends akka.dispatch.MessageDispatcherConfigurator",
+        "* extends akka.remote.RemoteTransport",
+        "* implements akka.actor.Actor",
+        "* implements akka.actor.ActorRefProvider",
+        "* implements akka.actor.ExtensionId",
+        "* implements akka.actor.ExtensionIdProvider",
+        "* implements akka.actor.SupervisorStrategyConfigurator",
+        "* implements akka.dispatch.MailboxType",
+        "* implements akka.routing.RouterConfig",
+        "* implements akka.serialization.Serializer",
+        "akka.*.*MessageQueueSemantics",
+        "akka.actor.LightArrayRevolverScheduler",
+        "akka.actor.LocalActorRefProvider",
+        "akka.actor.SerializedActorRef",
+        "akka.dispatch.MultipleConsumerSemantics",
+        "akka.event.Logging$LogExt",
+        "akka.event.Logging*",
+        "akka.remote.DaemonMsgCreate",
+        "akka.routing.ConsistentHashingPool",
+        "akka.routing.RoutedActorCell$RouterActorCreator",
+        "akka.event.DefaultLoggingFilter"
+      )
+      val sql = Seq(
+        "* implements java.sql.Driver",
+        "com.mysql.cj.core.**",
+        "com.mysql.cj.api.**"
+      )
+      Seq(scala_2_12, akka, sql).flatten
+    }
+
+    libraryJars.map(libraryJar => s"-libraryjars $libraryJar") ++
+      settings.map(setting => s"-$setting") ++
+      excluded.flatMap(clazz => List(clazz) ++
+        List(clazz).filter(_.contains(" extends ")).map(_.replaceAllLiterally(" extends ", " implements ")))
+        .flatMap(clazz => List(s"-keep class $clazz {*;}", s"-keep interface $clazz {*;}"))
+  },
 
   (ProguardKeys.proguard in Proguard) := (ProguardKeys.proguard in Proguard).dependsOn(assembly).value
 )
