@@ -1,7 +1,7 @@
 name := "ScreenCapture"
 
 lazy val settings = Seq(
-  version := "0.4.2",
+  version := "0.5.0",
 
   scalaOrganization := "org.typelevel",
   scalaVersion := "2.12.1",
@@ -14,14 +14,14 @@ lazy val settings = Seq(
     "org.scala-lang" % "scala-reflect" % "2.12.1",
     "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0",
     "org.slf4j" % "slf4j-api" % "1.7.25",
-    "ch.qos.logback" % "logback-classic" % "1.2.2",
+    "ch.qos.logback" % "logback-classic" % "1.2.3",
     "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
     "org.typelevel" %% "cats" % "0.9.0",
     "com.chuusai" %% "shapeless" % "2.3.2",
     "com.github.mpilquist" %% "simulacrum" % "0.10.0",
     "io.monix" %% "monix" % "2.2.4",
     "io.monix" %% "monix-cats" % "2.2.4",
-    "org.atnos" %% "eff" % "4.1.0",
+    "org.atnos" %% "eff" % "4.2.0",
     "com.typesafe.akka" %% "akka-actor" % "2.4.17",
     "com.typesafe.akka" %% "akka-remote" % "2.4.17",
     "com.typesafe.akka" %% "akka-stream" % "2.4.17",
@@ -30,12 +30,12 @@ lazy val settings = Seq(
     "org.scodec" %% "scodec-bits" % "1.1.4",
     "org.jcodec" % "jcodec-javase" % "0.2.0",
     "org.jcodec" % "jcodec-samples" % "0.2.0",
-    "io.swave" %% "swave-core" % "0.7.0",
-    "io.swave" %% "swave-akka-compat" % "0.7.0",
-    "io.swave" %% "swave-scodec-compat" % "0.7.0",
+    "io.swave" %% "swave-core" % "0.7.1",
+    "io.swave" %% "swave-akka-compat" % "0.7.1",
+    "io.swave" %% "swave-scodec-compat" % "0.7.1",
     "com.github.julien-truffaut" %% "monocle-core" % "1.4.0",
     "com.github.julien-truffaut" %% "monocle-macro" % "1.4.0",
-    "com.github.melrief" %% "pureconfig" % "0.6.0",
+    "com.github.melrief" %% "pureconfig" % "0.7.0",
     "eu.timepit" %% "refined" % "0.8.0",
     "eu.timepit" %% "refined-pureconfig" % "0.8.0",
     "com.lihaoyi" %% "fastparse" % "0.4.2"
@@ -59,7 +59,7 @@ lazy val settings = Seq(
   scalacOptions ++= Seq("-Xmax-classfile-name", "254")
 
 ) ++ proguardSettings ++ Seq(
-  ProguardKeys.proguardVersion in Proguard := "5.3.2",
+  ProguardKeys.proguardVersion in Proguard := "5.3.3",
   javaOptions in(Proguard, ProguardKeys.proguard) := Seq("-Xmx2G"),
 
   (ProguardKeys.options in Proguard) += ProguardOptions.keepMain("org.lolhens.screencapture.Main"),
