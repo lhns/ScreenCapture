@@ -3,12 +3,12 @@ name := "ScreenCapture"
 lazy val settings = Seq(
   version := "0.5.0",
 
-  scalaOrganization := "org.typelevel",
-  scalaVersion := "2.12.1",
+  scalaVersion := "2.12.8",
 
-  resolvers := Seq("Artifactory" at "http://lolhens.no-ip.org/artifactory/libs-release/"),
-
-  classpathTypes += "maven-plugin",
+  resolvers ++= Seq(
+    "lolhens-maven" at "http://artifactory.lolhens.de/artifactory/maven-public/",
+    Resolver.url("lolhens-ivy", url("http://artifactory.lolhens.de/artifactory/ivy-public/"))(Resolver.ivyStylePatterns)
+  ),
 
   libraryDependencies ++= Seq(
     "org.scala-lang" % "scala-reflect" % "2.12.1",
@@ -54,11 +54,11 @@ lazy val settings = Seq(
     case file => (assemblyMergeStrategy in assembly).value.apply(file)
   },
 
-  dependencyUpdatesExclusions := moduleFilter(organization = "org.scala-lang"),
+  //dependencyUpdatesExclusions := moduleFilter(organization = "org.scala-lang"),
 
   scalacOptions ++= Seq("-Xmax-classfile-name", "254")
 
-) ++ proguardSettings ++ Seq(
+) /*++ proguardSettings ++ Seq(
   ProguardKeys.proguardVersion in Proguard := "5.3.3",
   javaOptions in(Proguard, ProguardKeys.proguard) := Seq("-Xmx2G"),
 
@@ -128,7 +128,7 @@ lazy val settings = Seq(
   },
 
   (ProguardKeys.proguard in Proguard) := (ProguardKeys.proguard in Proguard).dependsOn(assembly).value
-)
+)*/
 
 lazy val classpathJar = Seq(
   scriptClasspath := {
